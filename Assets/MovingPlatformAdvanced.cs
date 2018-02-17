@@ -24,7 +24,6 @@ public class MovingPlatformAdvanced : MonoBehaviour {
 
     private void FixedUpdate()
     {
-        Debug.Log(currentGoal);
         if (IsNextPointReached())
         {
             ChangeNextPoint();
