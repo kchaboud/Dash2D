@@ -22,7 +22,7 @@ public class PlayerExternalVelocity : MonoBehaviour {
 
     public void GroundedWithMovingPlatform(GameObject o)
     {
-        externalVelocity = o.GetComponent<MovingPlatform>().Velocity();
+        externalVelocity = o.GetComponent<Rigidbody2D>().velocity;
     }
 
     public void ResetExternal()

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+[System.Obsolete("Use MovingPlatformAdvanced instead", false)]
 public class MovingPlatform : MonoBehaviour {
 
     public Vector3 defaultPos;
@@ -12,14 +14,16 @@ public class MovingPlatform : MonoBehaviour {
     private Vector2 leftVelocity = new Vector2(-8f, -3f);
     private Vector2 velocity = new Vector2(8f, 3f);
 
-    void Start () {
+    void Start ()
+    {
         rb = GetComponent<Rigidbody2D>();
         defaultPos = transform.position;
         finalPos = defaultPos + Vector3.right * 18 + Vector3.up * 5;
        
     }
 
-    void FixedUpdate () {
+    void FixedUpdate ()
+    {
         if (transform.position.x > finalPos.x && toTheRight)
         {
             toTheRight = false;
