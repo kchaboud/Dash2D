@@ -19,21 +19,13 @@ public class PlayerController : MonoBehaviour
     public TimeManager timeManager;
     public SwordController sword;
 
+    public PlayerInputs inputs = new PlayerInputs();
+
     public float maxMoveSpeed = 9f;
     public float groundAcceleration = 1f;
     public float airAcceleration = 1f;
     public float jumpSpeed = 10f;
     public float dashSpeed = 50f;
-
-    private int horizontalInput;
-    private int verticalInput;
-    private int lastHorizontalInput = 1;
-    private int lastVerticalInput = 0;
-    private bool swordInput;
-    private float jumpInput;
-    private float dashInput;
-    private int dashInputDown = 0; //Soit 0, soit 1 : on fait ça pour detecter les differents inputs (ça evite un buffer)
-    private int lastDashInputDown = 0;
 
     private bool alive = true;
     private bool grounded;
@@ -57,11 +49,11 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        RetrieveInputs();
+        inputs.UpdateInputs();
 
         FlipSprite();
 
-        sword.Attack(swordInput);
+        sword.Attack(inputs.sword);
     }
 
     private void FixedUpdate()
@@ -80,9 +72,9 @@ public class PlayerController : MonoBehaviour
 
         ApplyMovement();
 
-        if (dashInput > 0 && dashInputDown != lastDashInputDown && ableToDash)
+        if (inputs.IsNewDash() && ableToDash)
         {
-            lastDashInputDown = dashInputDown;
+            inputs.UseNewDash();
             ableToDash = false;
             if (dashSlowMotion)
             {
@@ -100,35 +92,9 @@ public class PlayerController : MonoBehaviour
             //if (grounded && !jumping) rb.velocity = new Vector2(rb.velocity.x, 0);
         }
 
-        anim.SetBool("Running", horizontalInput != 0);
+        anim.SetBool("Running", inputs.horizontal != 0);
         anim.SetBool("Jump", jumping);
         anim.SetBool("Grounded", grounded);
-    }
-
-    private void RetrieveInputs()
-    {
-        //horizontal
-        float decHorizontalInput = Input.GetAxis("Horizontal");
-        if (decHorizontalInput > 0f) horizontalInput = 1;
-        else if (decHorizontalInput < 0f) horizontalInput = -1;
-        else horizontalInput = 0;
-
-        //vertical
-        float decVerticalInput = -Input.GetAxis("Vertical");
-        if (decVerticalInput > 0f) verticalInput = 1;
-        else if (decVerticalInput < 0f) verticalInput = -1;
-        else verticalInput = 0;
-
-        if (horizontalInput != 0 || verticalInput != 0)
-        {
-            lastHorizontalInput = horizontalInput;
-            lastVerticalInput = verticalInput;
-        }
-
-        swordInput = Input.GetButton("SquarePS4");
-        jumpInput = Input.GetAxis("XPS4");
-        dashInput = Input.GetAxis("R1PS4");
-        if (Input.GetButtonDown("R1PS4")) dashInputDown = (dashInputDown + 1) % 1000;
     }
 
     private void ApplyMovement()
@@ -136,10 +102,10 @@ public class PlayerController : MonoBehaviour
         if (dashing != 0) return;
 
         //RUNNING
-        float horizontalAcceleration = grounded ? (horizontalInput * groundAcceleration) : (horizontalInput * airAcceleration);
+        float horizontalAcceleration = grounded ? (inputs.horizontal * groundAcceleration) : (inputs.horizontal * airAcceleration);
         float horizontalVelocity;
         Vector2 playerVelocity = externalVelocityManager.PlayerVelocityWithoutExternal();
-        if (horizontalInput == 0 || horizontalAcceleration * playerVelocity.x < 0)
+        if (inputs.horizontal == 0 || horizontalAcceleration * playerVelocity.x < 0)
         {
             horizontalVelocity = 0;
         }
@@ -152,14 +118,15 @@ public class PlayerController : MonoBehaviour
 
         //JUMP
         float verticalVelocity;
-        if (ableToJump && jumpInput > 0)
+        if (ableToJump && inputs.IsNewJump())
         {
+            inputs.UseNewJump();
             externalVelocityManager.ResetExternal();
             lastFrameJumping = 0;
             verticalVelocity = jumpSpeed;
             lastFrameGrounded = 10;
         }
-        else if (lastFrameJumping < 10 && jumpInput > 0)
+        else if (lastFrameJumping < 10 && inputs.jump)
         {
             ++lastFrameJumping;
             verticalVelocity = jumpSpeed;
@@ -180,7 +147,7 @@ public class PlayerController : MonoBehaviour
 
     private void FlipSprite()
     {
-        if (horizontalInput != 0) GetComponent<SpriteRenderer>().flipX = horizontalInput < 0;
+        if (inputs.horizontal != 0) GetComponent<SpriteRenderer>().flipX = inputs.horizontal < 0;
         sword.FlipSwordPosition(GetComponent<SpriteRenderer>().flipX);
     }
 
@@ -264,13 +231,13 @@ public class PlayerController : MonoBehaviour
     private Vector3 CalculateInputDirection()
     {
         Vector3 direction;
-        if (horizontalInput == 0 && verticalInput == 0)
+        if (inputs.horizontal == 0 && inputs.vertical == 0)
         {
-            direction = (new Vector3(lastHorizontalInput, lastVerticalInput)).normalized;
+            direction = (new Vector3(inputs.lastHorizontal, inputs.lastVertical)).normalized;
         }
         else
         {
-            direction = (new Vector3(horizontalInput, verticalInput)).normalized;
+            direction = (new Vector3(inputs.lastHorizontal, inputs.lastVertical)).normalized;
         }
         return direction;
     }
