@@ -36,17 +36,17 @@ public class PlayerInputs {
 
     private void RetrieveInputs()
     {
-        horizontal = (int)Input.GetAxis("DPAD X");
-        vertical = (int)Input.GetAxis("DPAD Y");
-        jump = Input.GetButton("Cross");
-        dash = Input.GetButton("R1");
-        sword = Input.GetButton("Square");
+        horizontal = (int)Input.GetAxis("X");
+        vertical = (int)Input.GetAxis("Y");
+        jump = Input.GetButton("Jump");
+        dash = Input.GetButton("Dash");
+        sword = Input.GetButton("Attack");
     }
 
     private void RetrieveInputsDown()
     {
-        if (Input.GetButtonDown("Cross")) newJumpDown = true;
-        if (Input.GetButtonDown("R1")) newDashDown = true;
+        if (Input.GetButtonDown("Jump")) newJumpDown = true;
+        if (Input.GetButtonDown("Dash")) newDashDown = true;
     }
 
     private void RememberLastInputs()
