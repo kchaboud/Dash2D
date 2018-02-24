@@ -21,6 +21,7 @@ public class PlayerController : MonoBehaviour
 
     public PlayerInputs inputs = new PlayerInputs();
     private CameraWindow cam;
+    private PlayerSound sound;
 
     public float maxMoveSpeed = 9f;
     public float groundAcceleration = 1f;
@@ -31,12 +32,14 @@ public class PlayerController : MonoBehaviour
     private bool alive = true;
     private bool grounded;
     private string lastGroundedTag;
+    private bool running = false;
     private bool jumping;
     private int lastFrameGrounded;
     private bool ableToJump;
     private int lastFrameJumping;
     private bool ableToDash;
     private bool dashSlowMotion = false;
+    private int successiveDashCount = 0;
     private int dashing = 0; //0 not dashing, 1 to 1000
     private int lastDashing = 1; //1 to 1000
     private int lastDashingReset = 0; //0 & 1 & 2
@@ -54,7 +57,6 @@ public class PlayerController : MonoBehaviour
         cam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CameraWindow>();
     }
 
-
     private void Update()
     {
         inputs.UpdateInputs();
@@ -67,6 +69,10 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         UpdateGroundedValue();
+        if (grounded)
+        {
+            successiveDashCount = 0;
+        }
         if (!ableToDash && grounded)
         {
             ableToDash = true;
@@ -130,6 +136,7 @@ public class PlayerController : MonoBehaviour
             lastFrameJumping = 0;
             verticalVelocity = jumpSpeed;
             lastFrameGrounded = 10;
+            sound.PlayJumpSound();
         }
         else if (lastFrameJumping < 10 && inputs.jump)
         {
@@ -145,6 +152,8 @@ public class PlayerController : MonoBehaviour
         {
             verticalVelocity = 0;
         }
+
+        running = (horizontalVelocity != 0 && grounded) ? true : false;
 
         //FINAL VELOCITY
         rb.velocity = new Vector2(horizontalVelocity, verticalVelocity);
@@ -175,16 +184,15 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateGroundedValue()
     {
-        grounded = IsGrounded();
-        if (grounded)
-        { 
-            OnGrounded();
-        }
+        bool newGrounded = UpdateGrounded();
+        if (newGrounded && !grounded) { OnLanding(); }
+        if (newGrounded) { OnGrounded(); }
+        grounded = newGrounded;
         lastFrameGrounded = grounded ? 0 : ++lastFrameGrounded;
         ableToJump = lastFrameGrounded < 4;
     }
 
-    private bool IsGrounded()
+    private bool UpdateGrounded()
     {
         //OLD CHECK if vertical speed is 0
         //if (externalVelocityManager.PlayerVelocityWithoutExternal().y != 0)
@@ -231,6 +239,7 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator DashAction()
     {
+        sound.PlayDashSound(successiveDashCount);
         dashing = (lastDashing+1)%1000;
         lastDashing = dashing;
         trailRend.enabled = true;
@@ -314,6 +323,7 @@ public class PlayerController : MonoBehaviour
             transform.position = dashResetterToUse.transform.position;
             rb.velocity = Vector3.zero;
             dashing = 0;
+            ++successiveDashCount;
             fixedGravityScale = true;
             dashResetState = true;
             ++dashCount;
@@ -354,7 +364,7 @@ public class PlayerController : MonoBehaviour
             dashResettersUsed.Clear();
             lastDashingReset = 0;
         }
-       
+
     }
 
     public bool IsDashing()
@@ -362,8 +372,28 @@ public class PlayerController : MonoBehaviour
         return dashing > 0;
     }
 
+    public bool IsRunning()
+    {
+        return running;
+    }
+
+    public bool IsGrounded()
+    {
+        return grounded;
+    }
+
+    public void OnLanding()
+    {
+        sound.PlayLandingSound();
+    }
+
     public void OnGrounded()
     {
         cam.PlayerGrounded(lastGroundedTag);
+    }
+
+    public void SetPlayerSound(PlayerSound sound)
+    {
+        this.sound = sound;
     }
 }

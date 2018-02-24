@@ -4,12 +4,15 @@ using UnityEngine;
 
 public class CameraWindow : MonoBehaviour
 {
+    public bool platformSnappingEnabled = true;
     public float changeSideDuration = 0.4f;
     public float platformSnappingDuration = 0.4f;
     public bool direction = true; //true -> right, false -> left
     public float directionOffset = 2f;
     public float windowWidth = 2f;
     public float verticalOffset = 0f;
+    public float minimumX = -1000f;
+    public float minimumY = -1000f;
 
     private Transform player;
     private bool changingSide = false;
@@ -52,11 +55,20 @@ public class CameraWindow : MonoBehaviour
         }
      
         //Vertical
-        if (player.transform.position.y < lastPlayerYPos)
+        if (player.transform.position.y < lastPlayerYPos && transform.position.y > minimumY)
         {
             transform.position -= new Vector3(0, lastPlayerYPos - player.transform.position.y, 0);
-            lastPlayerYPos = player.transform.position.y;
         }
+        
+        if(transform.position.x < minimumX)
+        {
+            transform.position = new Vector3(minimumX, transform.position.y, transform.position.z);
+        }
+        if (transform.position.y < minimumY)
+        {
+            transform.position = new Vector3(transform.position.x, minimumY, transform.position.z);
+        }
+        lastPlayerYPos = player.transform.position.y;
     }
 
     private IEnumerator ChangeSide()
@@ -77,9 +89,8 @@ public class CameraWindow : MonoBehaviour
 
     public void PlayerGrounded(string groundedTag)
     {
-        Debug.Log("landing");
         lastPlayerYPos = player.transform.position.y;
-        StartPlatformSnapping();
+        if (platformSnappingEnabled) StartPlatformSnapping();
     }
     private void StartPlatformSnapping()
     {
