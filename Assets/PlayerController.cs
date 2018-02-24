@@ -20,6 +20,7 @@ public class PlayerController : MonoBehaviour
     public SwordController sword;
 
     public PlayerInputs inputs = new PlayerInputs();
+    private CameraWindow cam;
 
     public float maxMoveSpeed = 9f;
     public float groundAcceleration = 1f;
@@ -29,6 +30,7 @@ public class PlayerController : MonoBehaviour
 
     private bool alive = true;
     private bool grounded;
+    private string lastGroundedTag;
     private bool jumping;
     private int lastFrameGrounded;
     private bool ableToJump;
@@ -47,6 +49,12 @@ public class PlayerController : MonoBehaviour
     private DashResetter dashResetterToUse;
     private Coroutine lastDashAction;
 
+    private void Start()
+    {
+        cam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CameraWindow>();
+    }
+
+
     private void Update()
     {
         inputs.UpdateInputs();
@@ -58,10 +66,7 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-       
-        grounded = IsGrounded();
-        lastFrameGrounded = grounded ? 0 : ++lastFrameGrounded;
-        ableToJump = lastFrameGrounded < 4;
+        UpdateGroundedValue();
         if (!ableToDash && grounded)
         {
             ableToDash = true;
@@ -168,6 +173,17 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void UpdateGroundedValue()
+    {
+        grounded = IsGrounded();
+        if (grounded)
+        { 
+            OnGrounded();
+        }
+        lastFrameGrounded = grounded ? 0 : ++lastFrameGrounded;
+        ableToJump = lastFrameGrounded < 4;
+    }
+
     private bool IsGrounded()
     {
         //OLD CHECK if vertical speed is 0
@@ -185,6 +201,7 @@ public class PlayerController : MonoBehaviour
         Debug.DrawRay(position - offset, direction * distance, Color.red);
         if (hit.collider != null)
         {
+            lastGroundedTag = hit.collider.tag;
             ManageMovingPlateform(hit.collider.gameObject);
             return true;
         }
@@ -192,6 +209,7 @@ public class PlayerController : MonoBehaviour
         Debug.DrawRay(position + offset, direction * distance, Color.blue);
         if (hit.collider != null)
         {
+            lastGroundedTag = hit.collider.tag;
             ManageMovingPlateform(hit.collider.gameObject);
             return true;
         }
@@ -342,5 +360,10 @@ public class PlayerController : MonoBehaviour
     public bool IsDashing()
     {
         return dashing > 0;
+    }
+
+    public void OnGrounded()
+    {
+        cam.PlayerGrounded(lastGroundedTag);
     }
 }

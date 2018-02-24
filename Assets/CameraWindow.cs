@@ -5,6 +5,7 @@ using UnityEngine;
 public class CameraWindow : MonoBehaviour
 {
     public float changeSideDuration = 0.4f;
+    public float platformSnappingDuration = 0.4f;
     public bool direction = true; //true -> right, false -> left
     public float directionOffset = 2f;
     public float windowWidth = 2f;
@@ -12,6 +13,9 @@ public class CameraWindow : MonoBehaviour
 
     private Transform player;
     private bool changingSide = false;
+    private Coroutine lastChangeSide;
+    private Coroutine lastPlatformSnapping;
+    private float lastPlayerYPos;
 
     private void Start()
     {
@@ -21,28 +25,37 @@ public class CameraWindow : MonoBehaviour
 
     private void Update()
     {
-        if (changingSide) return;
-
-        float playerXOffset = player.position.x - (transform.position.x - (direction ? directionOffset : -directionOffset));
-        if (playerXOffset > windowWidth)
+        if (!changingSide)
         {
-            if (!direction && !player.GetComponent<SpriteRenderer>().flipX)
+            //Horizontal
+            float playerXOffset = player.position.x - (transform.position.x - (direction ? directionOffset : -directionOffset));
+            if (playerXOffset > windowWidth)
             {
-                direction = true;
-                StartCoroutine(ChangeSide());
-                return;
+                if (!direction && !player.GetComponent<SpriteRenderer>().flipX)
+                {
+                    direction = true;
+                    StartChangeSide();
+                    return;
+                }
+                transform.position += new Vector3(playerXOffset - windowWidth, 0, 0);
             }
-            transform.position += new Vector3(playerXOffset - windowWidth, 0, 0);
+            else if (playerXOffset < -windowWidth)
+            {
+                if (direction && player.GetComponent<SpriteRenderer>().flipX)
+                {
+                    direction = false;
+                    StartChangeSide();
+                    return;
+                }
+                transform.position += new Vector3(playerXOffset + windowWidth, 0, 0);
+            }
         }
-        else if (playerXOffset < -windowWidth)
+     
+        //Vertical
+        if (player.transform.position.y < lastPlayerYPos)
         {
-            if (direction && player.GetComponent<SpriteRenderer>().flipX)
-            {
-                direction = false;
-                StartCoroutine(ChangeSide());
-                return;
-            }
-            transform.position += new Vector3(playerXOffset + windowWidth, 0, 0);
+            transform.position -= new Vector3(0, lastPlayerYPos - player.transform.position.y, 0);
+            lastPlayerYPos = player.transform.position.y;
         }
     }
 
@@ -57,10 +70,47 @@ public class CameraWindow : MonoBehaviour
             float goal = direction ? player.position.x + directionOffset - windowWidth : player.position.x - directionOffset + windowWidth;
             float xPos = Mathf.Lerp(originalX, goal, (float)++step/numberSteps);
             transform.position = new Vector3(xPos, transform.position.y, transform.position.z);
-            Debug.Log(xPos);
             yield return new WaitForFixedUpdate();
         }
         changingSide = false;
+    }
+
+    public void PlayerGrounded(string groundedTag)
+    {
+        Debug.Log("landing");
+        lastPlayerYPos = player.transform.position.y;
+        StartPlatformSnapping();
+    }
+    private void StartPlatformSnapping()
+    {
+        if (lastPlatformSnapping != null)
+        {
+            StopCoroutine(lastPlatformSnapping);
+        }
+        lastPlatformSnapping = StartCoroutine(PlatformSnappingVertical());
+    }
+
+    private void StartChangeSide()
+    {
+        if (lastChangeSide != null)
+        {
+            StopCoroutine(lastChangeSide);
+        }
+        lastChangeSide = StartCoroutine(ChangeSide());
+    }
+
+    private IEnumerator PlatformSnappingVertical()
+    {
+        float originalY = transform.position.y;
+        int numberSteps = (int)(platformSnappingDuration / Time.fixedDeltaTime);
+        int step = 0;
+        float goal = player.position.y + verticalOffset;
+        while (step < numberSteps)
+        {            
+            float yPos = Mathf.Lerp(originalY, goal, (float)++step / numberSteps);
+            transform.position = new Vector3(transform.position.x, yPos , transform.position.z);
+            yield return new WaitForFixedUpdate();
+        }
     }
 
 }
