@@ -6,6 +6,7 @@ public class TimeManager : MonoBehaviour {
 
     public AudioSource music;
     public AudioSource dashSound;
+    public AudioSource swordSound;
 
     public float slowdownFactor = 0.01f;
     public float slowdownLength = 0.5f;
@@ -26,6 +27,7 @@ public class TimeManager : MonoBehaviour {
         Time.timeScale = slowdownFactor;
         Time.fixedDeltaTime = Time.timeScale * 0.02f;
         music.pitch = Time.timeScale;
+        swordSound.pitch = Time.timeScale;
     }
 
     public void ResetTimeScale()
@@ -48,6 +50,7 @@ public class TimeManager : MonoBehaviour {
             if (Time.timeScale > 1f) Time.timeScale = 1f;
             Time.fixedDeltaTime = Time.timeScale * 0.02f;
             music.pitch = Time.timeScale;
+            swordSound.pitch = Time.timeScale;
             yield return new WaitForSecondsRealtime(0.01f);
         }
     }

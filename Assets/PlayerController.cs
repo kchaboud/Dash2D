@@ -278,6 +278,7 @@ public class PlayerController : MonoBehaviour
         sword.swordTrail.enabled = false;
         trailRend.enabled = false;
         rb.constraints = RigidbodyConstraints2D.FreezeAll;
+        sound.PlayDeathSound();
         StartCoroutine(Respawn());
     }
 

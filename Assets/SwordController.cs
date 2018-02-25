@@ -6,6 +6,7 @@ public class SwordController : MonoBehaviour {
 
     public TrailRenderer swordTrail;
     public PlayerController player;
+    public SwordSound sound;
 
     private int floatUp = 1;
     private Vector3 floatingMovement = new Vector3(0f, 0.2f, 0f);
@@ -79,6 +80,8 @@ public class SwordController : MonoBehaviour {
     {
         state = 1;
         swordTrail.enabled = true;
+
+        sound.PlaySwingSound();
 
         //Rotation and sword movement
         float rotationFactor = 10f;

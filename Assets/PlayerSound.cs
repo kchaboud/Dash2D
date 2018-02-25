@@ -9,6 +9,7 @@ public class PlayerSound : MonoBehaviour
     public AudioClip landingSound;
     public AudioClip[] runSounds;
     public AudioClip dashSound;
+    public AudioClip deathSound;
     public bool randomRunSounds = true;
     public float dashPitchFactor = 0.2f;
 
@@ -68,7 +69,6 @@ public class PlayerSound : MonoBehaviour
 
     public void PlayDashSound(int dashCount)
     {
-        Debug.Log(dashCount);
         dashSrc.pitch = 1 + dashCount * dashPitchFactor;
         dashSrc.PlayOneShot(dashSound);
     }
@@ -86,6 +86,11 @@ public class PlayerSound : MonoBehaviour
             runSoundIndex = (runSoundIndex + 1) % runSounds.Length;
         }
         src.PlayOneShot(runSound);
+    }
+
+    public void PlayDeathSound()
+    {
+        src.PlayOneShot(deathSound);
     }
 
 }
