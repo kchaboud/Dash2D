@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class TimeManager : MonoBehaviour {
 
+    public AudioSource music;
+    public AudioSource dashSound;
+
     public float slowdownFactor = 0.01f;
     public float slowdownLength = 0.5f;
     private Coroutine ResetTimeCo;
@@ -22,6 +25,7 @@ public class TimeManager : MonoBehaviour {
     {
         Time.timeScale = slowdownFactor;
         Time.fixedDeltaTime = Time.timeScale * 0.02f;
+        music.pitch = Time.timeScale;
     }
 
     public void ResetTimeScale()
@@ -43,6 +47,7 @@ public class TimeManager : MonoBehaviour {
             Time.timeScale += timeScaleIncrease;
             if (Time.timeScale > 1f) Time.timeScale = 1f;
             Time.fixedDeltaTime = Time.timeScale * 0.02f;
+            music.pitch = Time.timeScale;
             yield return new WaitForSecondsRealtime(0.01f);
         }
     }

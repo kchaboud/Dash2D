@@ -10,6 +10,7 @@ public class PlayerSound : MonoBehaviour
     public AudioClip[] runSounds;
     public AudioClip dashSound;
     public bool randomRunSounds = true;
+    public float dashPitchFactor = 0.2f;
 
     public float runInterval = 1f;
 
@@ -68,7 +69,7 @@ public class PlayerSound : MonoBehaviour
     public void PlayDashSound(int dashCount)
     {
         Debug.Log(dashCount);
-        dashSrc.pitch = 1 + dashCount * 0.2f;
+        dashSrc.pitch = 1 + dashCount * dashPitchFactor;
         dashSrc.PlayOneShot(dashSound);
     }
 
